@@ -32,12 +32,12 @@ export default function CarDetailScreen({ route, navigation }) {
     <View style={styles.container}>
       <ScrollView>
         {/* Imagen del auto */}
-        <Image source={auto.imagen} style={styles.carImage} />
+        <Image source={{uri: auto.imagen}} style={styles.carImage} />
 
         {/* Color del auto */}
         <View style={styles.colorContainer}>
           <View style={styles.colorCircle} />
-          <Text style={styles.colorText}>Gris azulado</Text>
+          <Text style={styles.colorText}>{auto.color}</Text>
         </View>
 
         {/* Nombre y Precio */}
@@ -64,7 +64,7 @@ export default function CarDetailScreen({ route, navigation }) {
         {descripcionVisible && (
           <View style={styles.serviceCard}>
             <Text style={styles.description}>
-              El Chevrolet Aveo Sedán 2025 es un automóvil subcompacto que ofrece eficiencia, seguridad y tecnología a un precio accesible...
+              {auto.description}
             </Text>
           </View>
         )}

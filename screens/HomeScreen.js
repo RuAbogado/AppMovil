@@ -1,6 +1,8 @@
-import React, { useState } from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // 🔥 IMPORTANTE: Agregado
 
 const autosPorMarca = {
   Chevrolet: [
@@ -16,31 +18,151 @@ const autosPorMarca = {
 };
 
 export default function HomeScreen({ navigation }) {
-  const [selectedMarca, setSelectedMarca] = useState("Chevrolet");
-  const [open, setOpen] = useState(false);  // Estado para manejar la apertura y cierre del dropdown
-  const autos = autosPorMarca[selectedMarca] || [];
+  const [marcasBack, setMarcasBack] = useState([]);
+  const [selectedMarca, setSelectedMarca] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [autosBack,setAutosBack] = useState([])
+  const primerVez = useRef(true)
+  const marcaSelecionada = useRef("")
+
+
+  // 🔥 Obtener el token de AsyncStorage y enviarlo en la cabecera
+  const handleGetMarcas = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        console.log("No hay token guardado.");
+        Alert.alert("Error", "No tienes una sesión activa.");
+        return;
+      }
+
+      //console.log("Token recuperado:", token);
+
+      const response = await axios.get("http://192.168.100.40:8080/marcas/getAll", {
+        headers: {
+          Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
+        }
+      });
+
+      console.log("Respuesta del servidor locochon:", response.data);
+
+      if (response.data && Array.isArray(response.data)) {
+        setMarcasBack(response.data);
+        //setSelectedMarca(response.data[0]?.nombre || null); // 🔥 Seleccionar la primera marca automáticamente
+
+      } else {
+        console.log("Error", "No se encontraron marcas disponibles.");
+      }
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+      Alert.alert("Error", "No se pudo conectar con el servidor.");
+    }
+  };
+
+  /*useEffect(() => {
+    handleGetMarcas(); // 🚀 Ahora sí se ejecuta al montar el componente
+  }, []);*/
+
+
+  ///peticion para los autos desde le back
+  const handleGetAutos = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        console.log("No hay token guardado.");
+        Alert.alert("Error", "No tienes una sesión activa.");
+        return;
+      }
+
+      //console.log("Token recuperado:", token);
+
+      const response = await axios.get('http://192.168.100.40:8080/vehiculo/obtener', {
+        headers: {
+          Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
+        }
+      });
+
+      console.log("Respuesta del servidor locochon e insano:", response.data);
+      setAutosBack(response.data)
+      
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+      Alert.alert("Error", "No se pudo conectar con el servidor.");
+    }
+  };
+
+  //parte donde se selccionan lo carros segun la marca
+  ///peticion para los autos desde le back
+  const handleGetAutosByBrand = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        console.log("No hay token guardado.");
+        Alert.alert("Error", "No tienes una sesión activa.");
+        return;
+      }
+
+      //console.log("Token recuperado:", token);
+      console.log("marca antes de la rebusqueda: ",selectedMarca)
+      const response = await axios.get(`http://192.168.100.40:8080/vehiculo/marca/${selectedMarca}`, {
+      headers: {
+          Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
+        }
+      });
+      setAutosBack(response.data)
+      console.log("Respuesta del servidor locochon e insano por marca:", response.data);
+
+      
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+      Alert.alert("Error", "No se pudo conectar con el servidor.");
+    }
+  };
+
+
+  /*useEffect(() => {
+    handleGetAutosByBrand();
+  }, [selectedMarca]);*/
+
+  console.log("valor de selectedMarca: ",selectedMarca)
+  console.log("valor de primeraVez: ",primerVez)
+
+  useEffect(() => {
+    if(primerVez.current){
+      handleGetMarcas(); // 🚀 Ahora sí se ejecuta al montar el componente
+      handleGetAutos();
+      primerVez.current = false
+    }else{
+      handleGetAutosByBrand();
+    }
+  }, [selectedMarca]);
+
+  
+
+  const autos = autosBack
 
   return (
     <View style={styles.container}>
       <DropDownPicker
-        open={open} // Controlar la apertura del dropdown
-        value={selectedMarca} // Usamos value para manejar la selección
-        items={Object.keys(autosPorMarca).map(marca => ({ label: marca, value: marca }))}
-        setOpen={setOpen} // Función que cambia el estado 'open'
-        setValue={setSelectedMarca} // Función para cambiar el estado 'selectedMarca'
+        open={open}
+        value={selectedMarca}
+        items={marcasBack.map(marca => ({ label: marca.nombre, value: marca.nombre }))}
+        setOpen={setOpen}
+        setValue={setSelectedMarca}
         containerStyle={styles.picker}
         style={styles.dropdown}
-        dropDownStyle={styles.dropdownMenu}
         placeholder="Selecciona una marca"
-        placeholderStyle={{ color: "#BDBDBD" }} // Color del texto del placeholder
+        placeholderStyle={{ color: "#BDBDBD" }}
+        listMode="SCROLLVIEW"
       />
       <FlatList
-        data={autos}
+        data={autosBack}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Image source={item.imagen} style={styles.image} />
-            <Text style={styles.carName}>{item.nombre}</Text>
+            <Image source={{ uri: item.imagen }} style={styles.image} />
+
+            <Text style={styles.carName}>{item.modelo}</Text>
             <TouchableOpacity 
                 style={styles.button}
                 onPress={() => navigation.navigate("CarDetail", { auto: item })}
@@ -69,9 +191,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#018180",
-  },
-  dropdownMenu: {
-    backgroundColor: "#F5F5F5",
   },
   card: {
     backgroundColor: "#FFF",
