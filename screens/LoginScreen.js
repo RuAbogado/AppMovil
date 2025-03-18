@@ -21,6 +21,12 @@ export default function LoginScreen({ navigation }) {
         password: contraseña,
       });
 
+
+
+
+
+      
+
       console.log("Respuesta del servidor:", response.data.token);
 
       // Si el login es exitoso
