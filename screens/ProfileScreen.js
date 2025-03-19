@@ -7,16 +7,44 @@ export default function ProfileScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 🔥 Decodificador de JWT para extraer el correo
+  const decodeToken = (token) => {
+    try {
+      const payload = token.split(".")[1];
+      const decoded = JSON.parse(atob(payload));
+      return decoded.sub; // El email suele venir en "sub"
+    } catch (error) {
+      console.error("Error al decodificar el token:", error);
+      return null;
+    }
+  };
+
   // 🔥 Función para obtener los datos del usuario por su correo
   const handleGetByCorreo = async () => {
     try {
       console.log("📥 Intentando obtener token y correo...");
 
       const token = await AsyncStorage.getItem("userToken");
-      const userEmail = await AsyncStorage.getItem("userEmail");
+      let userEmail = await AsyncStorage.getItem("userEmail");
 
       console.log("🔍 Token:", token);
       console.log("🔍 Email:", userEmail);
+
+      // Si no hay email guardado, lo sacamos del token
+      if (!userEmail && token) {
+        console.log("📩 No hay email guardado. Extrayendo del token...");
+        userEmail = decodeToken(token);
+
+        if (userEmail) {
+          console.log("✅ Email extraído del token:", userEmail);
+          await AsyncStorage.setItem("userEmail", userEmail); // Guardamos el email
+        } else {
+          console.log("🚨 No se pudo extraer el email del token.");
+          Alert.alert("Error", "No se pudo obtener el correo.");
+          setLoading(false);
+          return;
+        }
+      }
 
       if (!token || !userEmail) {
         console.log("🚨 No hay token o correo guardado.");
