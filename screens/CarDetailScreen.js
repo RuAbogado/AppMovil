@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, FlatList } from "react-native";
+import api from "../src/apiConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // 🔥 IMPORTANTE: Agregado
+
 
 export default function CarDetailScreen({ route, navigation }) {
   const { auto } = route.params;
@@ -14,6 +17,47 @@ export default function CarDetailScreen({ route, navigation }) {
     { id: "4", nombre: "Cambio de batería", descripcion: "Sustitución de batería vieja.", precio: "$2000", duracion: "Cada 2 años" },
     { id: "5", nombre: "Lavado y encerado", descripcion: "Limpieza profunda y encerado.", precio: "$300", duracion: "Mensual" }
   ];
+
+  const [servicios,setServicios] = useState([])
+
+
+  const handleGetServicios = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        console.log("No hay token guardado.");
+        Alert.alert("Error", "No tienes una sesión activa.");
+        return;
+      }
+
+      //console.log("Token recuperado:", token);
+
+      const response = await api.get('/servicios/obtener', {
+        headers: {
+          Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
+        }
+      });
+
+      console.log("Respuesta del servidor locochon:", response.data);
+
+      if (response.data && Array.isArray(response.data)) {
+        setServicios(response.data);
+        //setSelectedMarca(response.data[0]?.nombre || null); // 🔥 Seleccionar la primera marca automáticamente
+
+      } else {
+        console.log("Error", "No se encontraron marcas disponibles.");
+      }
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+      Alert.alert("Error", "No se pudo conectar con el servidor.");
+    }
+  };
+
+
+
+  useEffect(() => {
+    handleGetServicios(); // 🚀 Ahora sí se ejecuta al montar el componente
+  }, []);
 
   // Función para agregar servicio a la lista
   const agregarServicio = (servicio) => {
@@ -43,7 +87,7 @@ export default function CarDetailScreen({ route, navigation }) {
         {/* Nombre y Precio */}
         <Text style={styles.carTitle}>{auto.nombre}</Text>
         <Text style={styles.price}>
-          Precio: <Text style={styles.priceHighlight}>$350,000.00 MXN</Text>
+          Precio: <Text style={styles.priceHighlight}>${auto.precio} MXN</Text>
         </Text>
 
         {/* Botón Comprar */}
@@ -79,9 +123,12 @@ export default function CarDetailScreen({ route, navigation }) {
             renderItem={({ item }) => (
               <View style={styles.serviceTag}>
                 <View>
-                  <Text style={styles.serviceText}>{item.nombre}</Text>
-                  <Text style={styles.serviceInfo}>Precio: {item.precio}</Text>
-                  <Text style={styles.serviceInfo}>Duración: {item.duracion}</Text>
+                  <Text style={styles.serviceText}>{item.name}</Text>
+                  <Text style={styles.serviceInfo}>Precio: {item.price}</Text>
+                  {item.modalidad?.nombre && (
+                      <Text style={styles.serviceInfo}>Duración: {item.modalidad.nombre}</Text>
+                    )}
+
                 </View>
                 <TouchableOpacity onPress={() => eliminarServicio(item.id)}>
                   <Text style={styles.deleteButton}>X</Text>
@@ -106,13 +153,13 @@ export default function CarDetailScreen({ route, navigation }) {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Servicios Disponibles</Text>
             <FlatList
-              data={serviciosDisponibles}
+              data={servicios}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity style={styles.serviceOption} onPress={() => agregarServicio(item)}>
-                  <Text style={styles.serviceTitle}>{item.nombre}</Text>
-                  <Text style={styles.serviceDescription}>{item.descripcion}</Text>
-                  <Text style={styles.servicePrice}>Precio: {item.precio} | {item.duracion}</Text>
+                  <Text style={styles.serviceTitle}>{item.name}</Text>
+                  <Text style={styles.serviceDescription}>{item.description}</Text>
+                  <Text style={styles.servicePrice}>Precio: {item.price} | {item.modalidad?.nombre}</Text>
                 </TouchableOpacity>
               )}
             />

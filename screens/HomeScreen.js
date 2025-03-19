@@ -27,6 +27,7 @@ export default function HomeScreen({ navigation }) {
   const marcaSelecionada = useRef("")
 
   
+  
 
   // 🔥 Obtener el token de AsyncStorage y enviarlo en la cabecera
   const handleGetMarcas = async () => {
@@ -40,7 +41,7 @@ export default function HomeScreen({ navigation }) {
 
       //console.log("Token recuperado:", token);
 
-      const response = await api.get("/marcas/getAll", {
+      const response = await api.get('/marcas/getAll', {
         headers: {
           Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
         }
@@ -106,7 +107,7 @@ export default function HomeScreen({ navigation }) {
 
       //console.log("Token recuperado:", token);
       console.log("marca antes de la rebusqueda: ",selectedMarca)
-      const response = await api.get(`/marca/${selectedMarca}`, {
+      const response = await api.get(`/vehiculo/marca/${selectedMarca}`, {
       headers: {
           Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
         }
