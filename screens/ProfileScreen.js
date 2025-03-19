@@ -1,13 +1,75 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../src/apiConfig";
 
 export default function ProfileScreen({ navigation }) {
-  
-  const handleLogout = () => {
-    // 🔹 Aquí podrías limpiar datos de sesión si es necesario antes de salir
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // 🔥 Función para obtener los datos del usuario por su correo
+  const handleGetByCorreo = async () => {
+    try {
+      console.log("📥 Intentando obtener token y correo...");
+
+      const token = await AsyncStorage.getItem("userToken");
+      const userEmail = await AsyncStorage.getItem("userEmail");
+
+      console.log("🔍 Token:", token);
+      console.log("🔍 Email:", userEmail);
+
+      if (!token || !userEmail) {
+        console.log("🚨 No hay token o correo guardado.");
+        Alert.alert("Error", "No tienes una sesión activa.");
+        setLoading(false);
+        return;
+      }
+
+      console.log("🌐 Buscando cliente con correo:", userEmail);
+
+      const response = await api.get(`/cliente/email/${userEmail}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("✅ Respuesta del servidor:", response.data);
+
+      if (response.data) {
+        setUserData(response.data);
+      } else {
+        console.log("⚠️ No se encontró el cliente con ese correo.");
+        Alert.alert("Aviso", "No se encontró el cliente.");
+      }
+    } catch (error) {
+      console.error("❌ Error en la solicitud:", error);
+
+      if (error.response) {
+        console.error("Error del servidor:", error.response.data);
+        Alert.alert("Error", error.response.data.message || "Algo salió mal en el servidor.");
+      } else if (error.request) {
+        console.error("No hubo respuesta del servidor:", error.request);
+        Alert.alert("Error", "No se recibió respuesta del servidor.");
+      } else {
+        console.error("Error en la configuración:", error.message);
+        Alert.alert("Error", "Ocurrió un problema inesperado.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🚀 Cargamos los datos al montar el componente
+  useEffect(() => {
+    handleGetByCorreo();
+  }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("userToken");
+    await AsyncStorage.removeItem("userEmail");
     navigation.reset({
       index: 0,
-      routes: [{ name: "Login" }], // ✅ Elimina el historial y lleva al usuario al Login
+      routes: [{ name: "Login" }],
     });
   };
 
@@ -18,14 +80,31 @@ export default function ProfileScreen({ navigation }) {
 
       {/* Información del usuario */}
       <Text style={styles.title}>Perfil de Usuario</Text>
-      <View style={styles.infoContainer}>
-        <Text style={styles.label}>Nombre:</Text>
-        <Text style={styles.value}>Rubén Gómez Hernández</Text>
-      </View>
-      <View style={styles.infoContainer}>
-        <Text style={styles.label}>Correo:</Text>
-        <Text style={styles.value}>20233tn207@utez.edu.mx</Text>
-      </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#008080" />
+      ) : userData ? (
+        <>
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Nombre completo:</Text>
+            <Text style={styles.value}>
+              {`${userData.name} ${userData.lastname} ${userData.surname || ""}`}
+            </Text>
+          </View>
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Correo:</Text>
+            <Text style={styles.value}>{userData.email}</Text>
+          </View>
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Teléfono:</Text>
+            <Text style={styles.value}>
+              {userData.telephone ? userData.telephone : "Sin número registrado"}
+            </Text>
+          </View>
+        </>
+      ) : (
+        <Text style={{ color: "#d9534f", marginBottom: 20 }}>No se encontraron datos.</Text>
+      )}
 
       {/* Botón para cambiar contraseña */}
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("CambiarContraseña")}>
@@ -36,11 +115,11 @@ export default function ProfileScreen({ navigation }) {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
       </TouchableOpacity>
-
     </View>
   );
 }
 
+// 🎯 Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,

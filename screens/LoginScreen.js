@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, Alert } from "react-native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../src/apiConfig";
 
 
 export default function LoginScreen({ navigation }) {
@@ -9,6 +10,7 @@ export default function LoginScreen({ navigation }) {
   const [contraseña, setContraseña] = useState("");
 
   const handleLogin = async () => {
+    
     if (!correo || !contraseña) {
       console.log("debe decirte que eso no se puede")
       Alert.alert("Error", "Por favor, ingresa tu correo y contraseña.");
@@ -16,16 +18,10 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
-      const response = await axios.post("http://192.168.100.40:8080/api/auth/Login", {
+      const response = await api.post("/api/auth/Login", {
         email: correo, 
         password: contraseña,
       });
-
-
-
-
-
-      
 
       console.log("Respuesta del servidor:", response.data.token);
 

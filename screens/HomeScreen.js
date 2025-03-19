@@ -3,6 +3,7 @@ import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from
 import DropDownPicker from 'react-native-dropdown-picker';
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // 🔥 IMPORTANTE: Agregado
+import api from "../src/apiConfig";
 
 const autosPorMarca = {
   Chevrolet: [
@@ -25,6 +26,7 @@ export default function HomeScreen({ navigation }) {
   const primerVez = useRef(true)
   const marcaSelecionada = useRef("")
 
+  
 
   // 🔥 Obtener el token de AsyncStorage y enviarlo en la cabecera
   const handleGetMarcas = async () => {
@@ -38,7 +40,7 @@ export default function HomeScreen({ navigation }) {
 
       //console.log("Token recuperado:", token);
 
-      const response = await axios.get("http://192.168.100.40:8080/marcas/getAll", {
+      const response = await api.get("/marcas/getAll", {
         headers: {
           Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
         }
@@ -76,7 +78,7 @@ export default function HomeScreen({ navigation }) {
 
       //console.log("Token recuperado:", token);
 
-      const response = await axios.get('http://192.168.100.40:8080/vehiculo/obtener', {
+      const response = await api.get('/vehiculo/obtener', {
         headers: {
           Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
         }
@@ -104,7 +106,7 @@ export default function HomeScreen({ navigation }) {
 
       //console.log("Token recuperado:", token);
       console.log("marca antes de la rebusqueda: ",selectedMarca)
-      const response = await axios.get(`http://192.168.100.40:8080/vehiculo/marca/${selectedMarca}`, {
+      const response = await api.get(`/marca/${selectedMarca}`, {
       headers: {
           Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
         }
