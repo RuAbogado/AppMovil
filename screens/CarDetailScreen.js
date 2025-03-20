@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, FlatList } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, FlatList,Alert } from "react-native";
 import api from "../src/apiConfig";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // 🔥 IMPORTANTE: Agregado
+import axios from "axios"
 
 
 export default function CarDetailScreen({ route, navigation }) {
@@ -72,6 +73,104 @@ export default function CarDetailScreen({ route, navigation }) {
     setServiciosSeleccionados(serviciosSeleccionados.filter((s) => s.id !== id));
   };
 
+  console.log("servicios")
+  console.log(serviciosSeleccionados)
+  console.log("auto")
+  console.log(auto)
+
+
+
+    const [userData, setUserData] = useState(null);
+      const [loading, setLoading] = useState(true);
+
+
+        // 🔥 Decodificador de JWT para extraer el correo
+  const decodeToken = (token) => {
+    try {
+      const payload = token.split(".")[1];
+      const decoded = JSON.parse(atob(payload));
+      return decoded.sub; // El email suele venir en "sub"
+    } catch (error) {
+      console.error("Error al decodificar el token:", error);
+      return null;
+    }
+  };
+
+  // 🔥 Función para obtener los datos del usuario por su correo
+  const handleGetByCorreo = async () => {
+    try {
+      console.log("📥 Intentando obtener token y correo...");
+
+      const token = await AsyncStorage.getItem("userToken");
+      let userEmail = await AsyncStorage.getItem("userEmail");
+
+      console.log("🔍 Token:", token);
+      console.log("🔍 Email:", userEmail);
+
+      // Si no hay email guardado, lo sacamos del token
+      if (!userEmail && token) {
+        console.log("📩 No hay email guardado. Extrayendo del token...");
+        userEmail = decodeToken(token);
+
+        if (userEmail) {
+          console.log("✅ Email extraído del token:", userEmail);
+          await AsyncStorage.setItem("userEmail", userEmail); // Guardamos el email
+        } else {
+          console.log("🚨 No se pudo extraer el email del token.");
+          Alert.alert("Error", "No se pudo obtener el correo.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (!token || !userEmail) {
+        console.log("🚨 No hay token o correo guardado.");
+        Alert.alert("Error", "No tienes una sesión activa.");
+        setLoading(false);
+        return;
+      }
+
+      console.log("🌐 Buscando cliente con correo:", userEmail);
+
+      const response = await api.get(`/cliente/email/${userEmail}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("✅ Respuesta del servidor:", response.data);
+
+      if (response.data) {
+        setUserData(response.data);
+      } else {
+        console.log("⚠️ No se encontró el cliente con ese correo.");
+        Alert.alert("Aviso", "No se encontró el cliente.");
+      }
+    } catch (error) {
+      console.error("❌ Error en la solicitud:", error);
+
+      if (error.response) {
+        console.error("Error del servidor:", error.response.data);
+        Alert.alert("Error", error.response.data.message || "Algo salió mal en el servidor.");
+      } else if (error.request) {
+        console.error("No hubo respuesta del servidor:", error.request);
+        Alert.alert("Error", "No se recibió respuesta del servidor.");
+      } else {
+        console.error("Error en la configuración:", error.message);
+        Alert.alert("Error", "Ocurrió un problema inesperado.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+     useEffect(() => {
+        handleGetByCorreo();
+      }, []);
+
+      console.log("Usuario")
+      console.log(userData)
   return (
     <View style={styles.container}>
       <ScrollView>
@@ -93,7 +192,7 @@ export default function CarDetailScreen({ route, navigation }) {
         {/* Botón Comprar */}
         <TouchableOpacity
           style={styles.buyButton}
-          onPress={() => navigation.navigate("CompraScreen", { auto, serviciosSeleccionados })}
+          onPress={() => navigation.navigate("CompraScreen", { auto, serviciosSeleccionados,userData })}
         >
           <Text style={styles.buyButtonText}>Comprar</Text>
         </TouchableOpacity>

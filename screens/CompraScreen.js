@@ -3,15 +3,23 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 
 export default function CompraScreen({ route, navigation }) {
   // 🔹 Evitar errores si route.params es undefined
-  const { auto = {}, serviciosSeleccionados = [] } = route.params || {}; 
+
+  console.log("route")
+  console.log(route.params)
+  const { auto = {}, serviciosSeleccionados = [], userData=[] } = route.params || {}; 
 
   // 🔹 Calcular el total de los servicios
   const subtotal = 350000; // Precio base del auto
+  
   const totalServicios = Array.isArray(serviciosSeleccionados)
-    ? serviciosSeleccionados.reduce((acc, servicio) => acc + parseInt(servicio.precio.replace("$", "")), 0)
+    ? serviciosSeleccionados.reduce((acc, servicio) => acc + parseInt(servicio.price.replace("$", "")), 0)
     : 0;
 
   const total = subtotal + totalServicios;
+  console.log("total servicios")
+  console.log(totalServicios)
+  console.log("total servicios")
+  console.log(serviciosSeleccionados)
 
   return (
     <ScrollView style={styles.container}>
@@ -21,21 +29,23 @@ export default function CompraScreen({ route, navigation }) {
       <View style={styles.infoContainer}>
         <Text style={styles.sectionTitle}>Información del vehículo</Text>
         <Text style={styles.text}>No. de Factura: 0000-001</Text>
-        <Text style={styles.text}>Matrícula: BAV-007</Text>
+        <Text style={styles.text}>Matrícula: {auto.matricula}</Text>
         <Text style={styles.text}>Color: {auto.color || "Gris azulado"}</Text>
-        <Text style={styles.text}>Marca: {auto.marca || "Chevrolet"}</Text>
-        <Text style={styles.text}>Año: {auto.año || "2025"}</Text>
-        <Text style={styles.text}>Vendedor: Juan Pérez</Text>
-        <Text style={styles.text}>Titular: Juan Gabriel</Text>
+        <Text style={styles.text}>Marca: {auto.marca.nombre || "Chevrolet"}</Text>
+        <Text style={styles.text}>Año: {auto.year || "2025"}</Text>
+        <Text style={styles.text}>Vendedor: Se le asignara un agente de ventas en la agencia</Text>
+        <Text style={styles.text}>Titular: {userData.name+" "+userData.surname+" "+userData.lastname}</Text>
       </View>
 
             {/* Lista de servicios seleccionados */}
+
+            
             <View style={styles.infoContainer}>
         <Text style={styles.sectionTitle}>Servicios</Text>
         {Array.isArray(serviciosSeleccionados) && serviciosSeleccionados.length > 0 ? (
           serviciosSeleccionados.map((servicio, index) => (
             <View key={index} style={styles.serviceTag}>
-              <Text>{servicio.nombre} - {servicio.precio} / {servicio.duracion}</Text>
+              <Text>{servicio.name} - {servicio.price} / {servicio.name}</Text>
             </View>
           ))
         ) : (
