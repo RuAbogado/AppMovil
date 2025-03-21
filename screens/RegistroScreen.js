@@ -1,27 +1,59 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import api from "../src/apiConfig";
 
 export default function RegistroScreen({ navigation }) {
-  const [correo, setCorreo] = useState("");
-  const [contraseña, setContraseña] = useState("");
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [surname, setSurname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [telephone, setTelephone] = useState("");
+
+  const handleRegister = async () => {
+    if (!name || !username || !lastname || !surname || !email || !password || !telephone) {
+      Alert.alert("Error", "Por favor, completa todos los campos.");
+      return;
+    }
+
+    const clienteData = {
+      name,
+      username,
+      lastname,
+      surname,
+      email,
+      password,
+      telephone
+    };
+
+    try {
+      const response = await api.post("/api/auth/registerCliente", clienteData);
+
+      if (response.data) {
+        Alert.alert("Registro Exitoso", "Tu cuenta ha sido creada correctamente.");
+        navigation.navigate("Login");
+      } else {
+        Alert.alert("Error", response.data.message || "No se pudo completar el registro.");
+      }
+    } catch (error) {
+      console.error("Error en el registro:", error.response?.data || error);
+      Alert.alert("Error", error.response?.data?.message || "No se pudo conectar con el servidor.");
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Registro</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Correo"
-        value={correo}
-        onChangeText={setCorreo}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        secureTextEntry
-        value={contraseña}
-        onChangeText={setContraseña}
-      />
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("Login")}>
+      <TextInput style={styles.input} placeholder="Nombre" value={name} onChangeText={setName} />
+      <TextInput style={styles.input} placeholder="Nombre de Usuario" value={username} onChangeText={setUsername} />
+      <TextInput style={styles.input} placeholder="Apellido Paterno" value={lastname} onChangeText={setLastname} />
+      <TextInput style={styles.input} placeholder="Apellido Materno" value={surname} onChangeText={setSurname} />
+      <TextInput style={styles.input} placeholder="Correo" value={email} onChangeText={setEmail} keyboardType="email-address" />
+      <TextInput style={styles.input} placeholder="Teléfono" value={telephone} onChangeText={setTelephone} keyboardType="numeric" />
+      <TextInput style={styles.input} placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} />
+
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Registrarse</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.goBack()}>
