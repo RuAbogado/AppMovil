@@ -1,101 +1,137 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../src/apiConfig";
 
-export default function CambiarContraseñaScreen({ navigation }) {
-  const [contraseñaActual, setContraseñaActual] = useState("");
-  const [nuevaContraseña, setNuevaContraseña] = useState("");
-  const [confirmarContraseña, setConfirmarContraseña] = useState("");
+export default function CambiarContraseñaScreen({ route, navigation }) {
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [token, setToken] = useState("");
 
-  const handleGuardar = () => {
-    // 🔹 Aquí podrías agregar validaciones o lógica para cambiar la contraseña
-    console.log("Contraseña cambiada con éxito");
-    navigation.goBack(); // 🔹 Regresa a la pantalla de perfil
+  // 🎯 Obtener el token desde los params o AsyncStorage
+  useEffect(() => {
+    const loadToken = async () => {
+      const savedToken = route.params?.token || (await AsyncStorage.getItem("resetToken"));
+      console.log("🔑 Token recibido:", savedToken);
+
+      if (!savedToken) {
+        Alert.alert("Error", "No se encontró el token. Por favor, solicita un nuevo correo de restablecimiento.");
+        navigation.navigate("Login");
+      } else {
+        setToken(savedToken.trim());
+      }
+    };
+    loadToken();
+  }, []);
+
+  // 🔥 Validación y envío del nuevo password
+  const handleResetPassword = async () => {
+    if (newPassword.length < 6) {
+      Alert.alert("Error", "La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Error", "Las contraseñas no coinciden.");
+      return;
+    }
+
+    try {
+      console.log("🔧 Enviando nueva contraseña...");
+
+      const response = await api.post(
+        "/api/auth/reset-password",
+        { newPassword },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      console.log("✅ Respuesta del servidor:", response.data);
+
+      Alert.alert("Éxito", "Tu contraseña ha sido actualizada correctamente.");
+      await AsyncStorage.removeItem("resetToken"); // Limpieza del token
+      navigation.navigate("Login");
+    } catch (error) {
+      console.error("❌ Error al actualizar la contraseña:", error.response?.status, error.response?.data || error.message);
+      Alert.alert("Error", error.response?.data || "No se pudo actualizar la contraseña.");
+    }
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Contraseña actual:</Text>
+      <Text style={styles.title}>Restablecer Contraseña</Text>
+
       <TextInput
         style={styles.input}
+        placeholder="Nueva contraseña"
         secureTextEntry
-        value={contraseñaActual}
-        onChangeText={setContraseñaActual}
+        value={newPassword}
+        onChangeText={setNewPassword}
       />
 
-      <Text style={styles.label}>Nueva contraseña:</Text>
       <TextInput
         style={styles.input}
+        placeholder="Confirmar contraseña"
         secureTextEntry
-        value={nuevaContraseña}
-        onChangeText={setNuevaContraseña}
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
       />
 
-      <Text style={styles.label}>Confirmar contraseña:</Text>
-      <TextInput
-        style={styles.input}
-        secureTextEntry
-        value={confirmarContraseña}
-        onChangeText={setConfirmarContraseña}
-      />
+      <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+        <Text style={styles.cancelButtonText}>Cambiar contraseña</Text>
+      </TouchableOpacity>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.cancelButtonText}>Volver</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.saveButton} onPress={handleGuardar}>
-          <Text style={styles.saveButtonText}>Guardar</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.cancelButtonText}>Cancelar</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
+// 🎯 Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#f5f5f5",
     padding: 20,
-    justifyContent: "center",
   },
-  label: {
-    fontSize: 16,
+  title: {
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: 20,
+    color: "#333",
   },
   input: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
+    width: "100%",
+    padding: 15,
     borderColor: "#ddd",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
-  },
-  cancelButton: {
-    backgroundColor: "#ddd",
-    padding: 12,
+    borderWidth: 1,
     borderRadius: 10,
-    alignItems: "center",
-    flex: 1,
-    marginRight: 10,
+    marginBottom: 15,
+    backgroundColor: "#fff",
   },
-  cancelButtonText: {
-    color: "#333",
+  button: {
+    backgroundColor: "#008080",
+    padding: 15,
+    borderRadius: 10,
+    width: "100%",
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
-  saveButton: {
-    backgroundColor: "#008080",
-    padding: 12,
+  cancelButton: {
+    marginTop: 10,
+    backgroundColor: "#d9534f",
+    padding: 15,
     borderRadius: 10,
+    width: "100%",
     alignItems: "center",
-    flex: 1,
   },
-  saveButtonText: {
+  cancelButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",

@@ -135,9 +135,14 @@ export default function ProfileScreen({ navigation }) {
       )}
 
       {/* Botón para cambiar contraseña */}
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("CambiarContraseña")}>
-        <Text style={styles.buttonText}>Cambiar Contraseña</Text>
-      </TouchableOpacity>
+              
+
+        <TouchableOpacity style={styles.button} onPress={async () => {
+            const token = await AsyncStorage.getItem("userToken");
+            navigation.navigate("CambiarContraseña", { token }); // Solo pasamos el token
+            }}>
+          <Text style={styles.buttonText}>Cambiar Contraseña</Text>
+        </TouchableOpacity>
 
       {/* Botón para cerrar sesión */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
