@@ -13,7 +13,8 @@ import RegistroScreen from "../screens/RegistroScreen";
 import RecuperarContraseñaScreen from "../screens/RecuperarContraseñaScreen";
 import MarcaDetalleScreen from "../screens/MarcaDetalleScreen";
 import CarDetailScreen from "../screens/CarDetailScreen";
-import CompraScreen from "../screens/CompraScreen";
+import Comprando from "../screens/Comprando";
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -47,7 +48,7 @@ export default function AppNavigator() {
       <Stack.Screen name="HomeTabs" component={HomeTabs} />
       <Stack.Screen name="MarcaDetalle" component={MarcaDetalleScreen} />
       <Stack.Screen name="CarDetail" component={CarDetailScreen} />
-      <Stack.Screen name="CompraScreen" component={CompraScreen} />
+      <Stack.Screen name="CompraScreen" component={Comprando} />
       <Stack.Screen name="DetalleCompra" component={DetalleCompraScreen} />
       <Stack.Screen name="CambiarContraseña" component={CambiarContraseñaScreen} />
       <Stack.Screen name="Registro" component={RegistroScreen} />

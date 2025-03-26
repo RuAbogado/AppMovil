@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
-import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // 🔥 IMPORTANTE: Agregado
 import api from "../src/apiConfig";
 
@@ -106,7 +105,7 @@ export default function HomeScreen({ navigation }) {
 
       //console.log("Token recuperado:", token);
       console.log("marca antes de la rebusqueda: ",selectedMarca)
-      const response = await api.get(`/marca/${selectedMarca}`, {
+      const response = await api.get(`/vehiculo/marca/${selectedMarca}`, {
       headers: {
           Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
         }

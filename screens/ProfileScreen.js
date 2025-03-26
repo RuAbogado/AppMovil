@@ -52,9 +52,10 @@ export default function ProfileScreen({ navigation }) {
         setLoading(false);
         return;
       }
+      
 
       console.log("🌐 Buscando cliente con correo:", userEmail);
-
+      console.log("token " +  token)
       const response = await api.get(`/cliente/email/${userEmail}`, {
         headers: {
           Authorization: `Bearer ${token}`,
