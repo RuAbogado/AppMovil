@@ -1,20 +1,55 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
+import api from "../src/apiConfig";
 
 export default function RecuperarContraseñaScreen({ navigation }) {
   const [correo, setCorreo] = useState("");
 
+  const handleEnviarEnlace = async () => {
+    if (!correo.trim()) {
+      Alert.alert("Campo vacío", "Por favor ingresa un correo válido.");
+      return;
+    }
+
+    try {
+      const response = await api.post("/api/auth/send-email", {
+        to: correo,
+        subject: "",
+        body: "",
+      });
+
+      console.log("✅ Respuesta del servidor:", response.data);
+
+      Alert.alert("Recuperación de contraseña", response.data);
+      navigation.goBack();
+    } catch (error) {
+      console.error("❌ Error al enviar el correo:", error);
+      Alert.alert("Error", "No se pudo contactar con el servidor.");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Recuperar Contraseña</Text>
-      <Text style={styles.infoText}>Ingresa tu correo para recibir un enlace de recuperación.</Text>
+      <Text style={styles.infoText}>
+        Ingresa tu correo para recibir un enlace de recuperación.
+      </Text>
       <TextInput
         style={styles.input}
         placeholder="Correo"
         value={correo}
         onChangeText={setCorreo}
+        keyboardType="email-address"
+        autoCapitalize="none"
       />
-      <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.button} onPress={handleEnviarEnlace}>
         <Text style={styles.buttonText}>Enviar enlace</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -36,6 +71,7 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "bold",
     marginBottom: 20,
+    color: "#008080",
   },
   infoText: {
     textAlign: "center",

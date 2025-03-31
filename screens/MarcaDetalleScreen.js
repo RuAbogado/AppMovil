@@ -1,24 +1,14 @@
 import React from "react";
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 
-const autosPorMarca = {
-  Chevrolet: [
-    { id: "1", nombre: "Aveo sedán 2025", imagen: require("../assets/aveo.jpeg") },
-    { id: "2", nombre: "Aveo sedán 2025", imagen: require("../assets/aveo.jpeg") },
-    { id: "3", nombre: "Aveo sedán 2025", imagen: require("../assets/aveo.jpeg") },
-    { id: "4", nombre: "Aveo sedán 2025", imagen: require("../assets/aveo.jpeg") },
-  ],
-  Toyota: [],
-  Ford: [],
-  BMW: [],
-  "Mercedes-Benz": [],
-};
+
 
 export default function MarcaDetalleScreen({ route, navigation }) {
   const { marca } = route.params;
   const autos = autosPorMarca[marca] || [];
 
   return (
+    <SafeAreaView  style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
     <View style={styles.container}>
       {/* Encabezado con el logo de la marca */}
       <View style={styles.header}>
@@ -42,6 +32,7 @@ export default function MarcaDetalleScreen({ route, navigation }) {
         )}
       />
     </View>
+    </SafeAreaView>
   );
 }
 

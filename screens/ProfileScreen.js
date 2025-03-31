@@ -108,7 +108,7 @@ export default function ProfileScreen({ navigation }) {
       <Image source={require("../assets/profile.jpeg")} style={styles.profileImage} />
 
       {/* Información del usuario */}
-      <Text style={styles.title}>Perfil de Usuario</Text>
+      <Text style={styles.title}>{`${userData? userData.name: "sin nombre" }`}</Text>
 
       {loading ? (
         <ActivityIndicator size="large" color="#008080" />
@@ -117,7 +117,7 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Nombre completo:</Text>
             <Text style={styles.value}>
-              {`${userData.name} ${userData.lastname} ${userData.surname || ""}`}
+              {`${userData.name} ${userData.lastname}`}
             </Text>
           </View>
           <View style={styles.infoContainer}>

@@ -59,7 +59,11 @@ export default function CarDetailScreen({ route, navigation }) {
         {/* Botón Comprar */}
         <TouchableOpacity
           style={styles.buyButton}
-          onPress={() => navigation.navigate("CompraScreen", { auto, serviciosSeleccionados })}
+          onPress={() => navigation.navigate("CompraScreen", {
+            auto,
+            serviciosSeleccionados,
+            agenteId: auto.agente?.id || null // si tienes agente relacionado al auto
+          })}
         >
           <Text style={styles.buyButtonText}>Comprar</Text>
         </TouchableOpacity>

@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import {SafeAreaView ,View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import api from "../src/apiConfig";
 
 export default function RegistroScreen({ navigation }) {
   const [name, setName] = useState("");
-  const [username, setUsername] = useState("");
   const [lastname, setLastname] = useState("");
   const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
@@ -12,14 +11,13 @@ export default function RegistroScreen({ navigation }) {
   const [telephone, setTelephone] = useState("");
 
   const handleRegister = async () => {
-    if (!name || !username || !lastname || !surname || !email || !password || !telephone) {
+    if (!name || !lastname || !surname || !email || !password || !telephone) {
       Alert.alert("Error", "Por favor, completa todos los campos.");
       return;
     }
 
     const clienteData = {
       name,
-      username,
       lastname,
       surname,
       email,
@@ -43,10 +41,10 @@ export default function RegistroScreen({ navigation }) {
   };
 
   return (
+     <SafeAreaView  style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
     <View style={styles.container}>
       <Text style={styles.title}>Registro</Text>
       <TextInput style={styles.input} placeholder="Nombre" value={name} onChangeText={setName} />
-      <TextInput style={styles.input} placeholder="Nombre de Usuario" value={username} onChangeText={setUsername} />
       <TextInput style={styles.input} placeholder="Apellido Paterno" value={lastname} onChangeText={setLastname} />
       <TextInput style={styles.input} placeholder="Apellido Materno" value={surname} onChangeText={setSurname} />
       <TextInput style={styles.input} placeholder="Correo" value={email} onChangeText={setEmail} keyboardType="email-address" />
@@ -60,6 +58,7 @@ export default function RegistroScreen({ navigation }) {
         <Text style={styles.backText}>Volver al Inicio de Sesión</Text>
       </TouchableOpacity>
     </View>
+    </SafeAreaView>
   );
 }
 

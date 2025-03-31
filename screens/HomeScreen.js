@@ -3,19 +3,9 @@ import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from
 import DropDownPicker from 'react-native-dropdown-picker';
 import AsyncStorage from "@react-native-async-storage/async-storage"; // 🔥 IMPORTANTE: Agregado
 import api from "../src/apiConfig";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const autosPorMarca = {
-  Chevrolet: [
-    { id: "1", nombre: "Aveo sedán 2025", imagen: require("../assets/aveo.jpeg") },
-    { id: "2", nombre: "Aveo sedán 2025", imagen: require("../assets/aveo.jpeg") },
-    { id: "3", nombre: "Aveo sedán 2025", imagen: require("../assets/aveo.jpeg") },
-    { id: "4", nombre: "Aveo sedán 2025", imagen: require("../assets/aveo.jpeg") },
-  ],
-  Toyota: [],
-  Ford: [],
-  BMW: [],
-  "Mercedes-Benz": [],
-};
+
 
 export default function HomeScreen({ navigation }) {
   const [marcasBack, setMarcasBack] = useState([]);
@@ -23,8 +13,7 @@ export default function HomeScreen({ navigation }) {
   const [open, setOpen] = useState(false);
   const [autosBack,setAutosBack] = useState([])
   const primerVez = useRef(true)
-  const marcaSelecionada = useRef("")
-
+ 
   
 
   // 🔥 Obtener el token de AsyncStorage y enviarlo en la cabecera
@@ -143,6 +132,7 @@ export default function HomeScreen({ navigation }) {
   const autos = autosBack
 
   return (
+    <SafeAreaView  style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
     <View style={styles.container}>
       <DropDownPicker
         open={open}
@@ -174,6 +164,7 @@ export default function HomeScreen({ navigation }) {
         )}
       />
     </View>
+    </SafeAreaView>
   );
 }
 
