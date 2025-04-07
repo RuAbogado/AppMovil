@@ -134,6 +134,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView  style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
     <View style={styles.container}>
+    <Text style={styles.title}>Catálogo de autos</Text>
       <DropDownPicker
         open={open}
         value={selectedMarca}
@@ -174,6 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
     padding: 10,
   },
+  title: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
   picker: {
     height: 50,
     width: "100%",
