@@ -112,17 +112,22 @@ export default function ProfileScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Perfil</Text>
-      <Image source={require("../assets/perfil.png")} style={styles.profileImage} />
-      
+
+      {/* Imagen de perfil */}
+      <Image source={require("../assets/profile.png")} style={styles.profileImage} />
+
+      {/* Información del usuario */}
+      <Text style={styles.titleUser}>
+        {userData ? `${userData.name}` : "Sin nombre"}
+      </Text>
+
       {loading ? (
         <ActivityIndicator size="large" color="#008080" />
       ) : userData ? (
         <>
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Nombre:</Text>
-            <Text style={styles.value}>
-              {`${userData.name} ${userData.lastname}`}
-            </Text>
+            <Text style={styles.value}>{`${userData.name} ${userData.lastname}`}</Text>
           </View>
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Correo:</Text>
@@ -141,9 +146,7 @@ export default function ProfileScreen({ navigation }) {
               <Text style={styles.subtitle}>Agente Asignado</Text>
               <View style={styles.infoContainer}>
                 <Text style={styles.label}>Nombre completo:</Text>
-                <Text style={styles.value}>
-                  {`${userData.agente.name} ${userData.agente.lastname}`}
-                </Text>
+                <Text style={styles.value}>{`${userData.agente.name} ${userData.agente.lastname}`}</Text>
               </View>
               <View style={styles.infoContainer}>
                 <Text style={styles.label}>Correo:</Text>
@@ -184,17 +187,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start", 
     backgroundColor: "#f5f5f5",
     padding: 20,
+    paddingTop: 40, 
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 30, 
   },
   profileImage: {
-    width: 100,
-    height: 100,
+    width: 150,
+    height: 150,
     borderRadius: 50,
     marginBottom: 20,
   },
-  title: {
+  titleUser: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 20,

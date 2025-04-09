@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Alert,
 } from "react-native";
-import api from "../src/apiConfig";
 
 export default function RecuperarContraseñaScreen({ navigation }) {
   const [correo, setCorreo] = useState("");
@@ -19,19 +18,24 @@ export default function RecuperarContraseñaScreen({ navigation }) {
     }
 
     try {
-      const response = await api.post("/api/auth/send-email", {
-        to: correo,
-        subject: "",
-        body: "",
+      const response = await fetch("http://192.168.1.74:8080/api/auth/forgot-password-movil", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: correo }),
       });
 
-      console.log("✅ Respuesta del servidor:", response.data);
-
-      Alert.alert("Recuperación de contraseña", response.data);
-      navigation.goBack();
+      if (response.ok) {
+        const mensaje = await response.text(); // respuesta del backend
+        Alert.alert("Recuperación de contraseña", mensaje);
+        navigation.goBack();
+      } else {
+        Alert.alert("Error", "No se pudo enviar el correo. Verifica el email.");
+      }
     } catch (error) {
       console.error("❌ Error al enviar el correo:", error);
-      Alert.alert("Error", "No se pudo contactar con el servidor.");
+      Alert.alert("Error", "No se pudo conectar con el servidor.");
     }
   };
 
