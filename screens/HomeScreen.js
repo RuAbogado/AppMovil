@@ -133,7 +133,12 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <SafeAreaView  style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
-    <View style={styles.container}>
+
+  
+      
+
+      <View style={styles.container}>
+      <Text style={styles.title}>Automoviles</Text>
       <DropDownPicker
         open={open}
         value={selectedMarca}
@@ -183,6 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#018180",
+    flex:1,
   },
   card: {
     backgroundColor: "#FFF",
@@ -218,4 +224,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
+  title: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 40 },
 });

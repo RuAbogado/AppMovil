@@ -55,7 +55,7 @@ export default function HistorialScreen({ navigation }) {
       }
 
       // Obtener ventas del cliente
-      const response = await api.get(`/ventas/${clienteId}`, {
+      const response = await api.get(`/ventas/porCliente/${clienteId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -78,7 +78,7 @@ export default function HistorialScreen({ navigation }) {
           id: vs.servicio?.id,
           nombre: vs.servicio?.name || vs.servicio?.nombre,
           precio: vs.servicio?.price || vs.servicio?.precio,
-          duracion: vs.servicio?.modalidad
+          duracion: vs.servicio?.modalidad?.nombre || "sin modalidad"
         })),
       }));
 

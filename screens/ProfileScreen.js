@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../src/apiConfig";
 
@@ -30,14 +38,13 @@ export default function ProfileScreen({ navigation }) {
       console.log("🔍 Token:", token);
       console.log("🔍 Email:", userEmail);
 
-      // Si no hay email guardado, lo sacamos del token
       if (!userEmail && token) {
         console.log("📩 No hay email guardado. Extrayendo del token...");
         userEmail = decodeToken(token);
 
         if (userEmail) {
           console.log("✅ Email extraído del token:", userEmail);
-          await AsyncStorage.setItem("userEmail", userEmail); // Guardamos el email
+          await AsyncStorage.setItem("userEmail", userEmail);
         } else {
           console.log("🚨 No se pudo extraer el email del token.");
           Alert.alert("Error", "No se pudo obtener el correo.");
@@ -52,10 +59,8 @@ export default function ProfileScreen({ navigation }) {
         setLoading(false);
         return;
       }
-      
 
       console.log("🌐 Buscando cliente con correo:", userEmail);
-      console.log("token " +  token)
       const response = await api.get(`/cliente/email/${userEmail}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -75,7 +80,10 @@ export default function ProfileScreen({ navigation }) {
 
       if (error.response) {
         console.error("Error del servidor:", error.response.data);
-        Alert.alert("Error", error.response.data.message || "Algo salió mal en el servidor.");
+        Alert.alert(
+          "Error",
+          error.response.data.message || "Algo salió mal en el servidor."
+        );
       } else if (error.request) {
         console.error("No hubo respuesta del servidor:", error.request);
         Alert.alert("Error", "No se recibió respuesta del servidor.");
@@ -88,7 +96,6 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // 🚀 Cargamos los datos al montar el componente
   useEffect(() => {
     handleGetByCorreo();
   }, []);
@@ -104,18 +111,15 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Imagen de perfil */}
-      <Image source={require("../assets/profile.jpeg")} style={styles.profileImage} />
-
-      {/* Información del usuario */}
-      <Text style={styles.title}>{`${userData? userData.name: "sin nombre" }`}</Text>
-
+      <Text style={styles.title}>Perfil</Text>
+      <Image source={require("../assets/perfil.png")} style={styles.profileImage} />
+      
       {loading ? (
         <ActivityIndicator size="large" color="#008080" />
       ) : userData ? (
         <>
           <View style={styles.infoContainer}>
-            <Text style={styles.label}>Nombre completo:</Text>
+            <Text style={styles.label}>Nombre:</Text>
             <Text style={styles.value}>
               {`${userData.name} ${userData.lastname}`}
             </Text>
@@ -130,22 +134,44 @@ export default function ProfileScreen({ navigation }) {
               {userData.telephone ? userData.telephone : "Sin número registrado"}
             </Text>
           </View>
+
+          {/* Datos del agente asignado */}
+          {userData.agente && (
+            <>
+              <Text style={styles.subtitle}>Agente Asignado</Text>
+              <View style={styles.infoContainer}>
+                <Text style={styles.label}>Nombre completo:</Text>
+                <Text style={styles.value}>
+                  {`${userData.agente.name} ${userData.agente.lastname}`}
+                </Text>
+              </View>
+              <View style={styles.infoContainer}>
+                <Text style={styles.label}>Correo:</Text>
+                <Text style={styles.value}>{userData.agente.email}</Text>
+              </View>
+              <View style={styles.infoContainer}>
+                <Text style={styles.label}>Usuario:</Text>
+                <Text style={styles.value}>{userData.agente.username}</Text>
+              </View>
+            </>
+          )}
         </>
       ) : (
-        <Text style={{ color: "#d9534f", marginBottom: 20 }}>No se encontraron datos.</Text>
+        <Text style={{ color: "#d9534f", marginBottom: 20 }}>
+          No se encontraron datos.
+        </Text>
       )}
 
-      {/* Botón para cambiar contraseña */}
-              
+      <TouchableOpacity
+        style={styles.button}
+        onPress={async () => {
+          const token = await AsyncStorage.getItem("userToken");
+          navigation.navigate("CambiarContraseña", { token });
+        }}
+      >
+        <Text style={styles.buttonText}>Cambiar Contraseña</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={async () => {
-            const token = await AsyncStorage.getItem("userToken");
-            navigation.navigate("CambiarContraseña", { token }); // Solo pasamos el token
-            }}>
-          <Text style={styles.buttonText}>Cambiar Contraseña</Text>
-        </TouchableOpacity>
-
-      {/* Botón para cerrar sesión */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
       </TouchableOpacity>
@@ -173,6 +199,14 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     color: "#333",
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#008080",
+    marginTop: 25,
+    marginBottom: 10,
+    alignSelf: "flex-start",
   },
   infoContainer: {
     flexDirection: "row",

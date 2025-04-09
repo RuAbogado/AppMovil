@@ -55,15 +55,9 @@ export default function DetalleCompraScreen({ route }) {
           <Text style={styles.label}><Text style={styles.bold}>Placa:</Text> {compra.placa || compra.matricula || "-"}</Text>
         </View>
 
-        {/* Datos del agente */}
-        <View style={styles.column}>
-          <Text style={styles.sectionTitle}>Datos de{"\n"}Agente de ventas</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Vendedor:</Text> {compra.agente || "-"}</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Teléfono:</Text> {compra.telefono || "No disponible"}</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Correo:</Text> {compra.correo || "No disponible"}</Text>
-        </View>
+        
       </View>
-
+     
       {/* Precios */}
       <View style={styles.priceSection}>
         <Text style={styles.sectionTitle}>Precios</Text>

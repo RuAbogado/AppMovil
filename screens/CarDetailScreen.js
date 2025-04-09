@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, FlatList } from "react-native";
 import api from "../src/apiConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CarDetailScreen({ route, navigation }) {
   const { auto } = route.params;
@@ -11,8 +12,15 @@ export default function CarDetailScreen({ route, navigation }) {
 
   // Función para obtener los servicios desde el backend
   const obtenerServicios = async () => {
+
+    const token = await AsyncStorage.getItem("userToken");
+
     try {
-      const response = await api.get("/servicios/obtener"); // Cambia la URL si es necesario
+      const response = await api.get("/servicios/obtener",{
+          headers:{
+            Authorization:`Bearer ${token}`,
+          },
+      }); // Cambia la URL si es necesario
       setServiciosDisponibles(response.data); // Almacena los servicios en el estado
     } catch (error) {
       console.error("Error al obtener los servicios:", error);
@@ -42,6 +50,8 @@ export default function CarDetailScreen({ route, navigation }) {
     <View style={styles.container}>
       <ScrollView>
         {/* Imagen del auto */}
+
+        <Text style={styles.carTitle}>{auto.modelo}</Text>
         <Image source={{ uri: auto.imagen }} style={styles.carImage} />
 
         {/* Color del auto */}
@@ -69,19 +79,17 @@ export default function CarDetailScreen({ route, navigation }) {
         </TouchableOpacity>
 
         {/* Sección Descripción con despliegue */}
-        <TouchableOpacity style={styles.toggleButton} onPress={() => setDescripcionVisible(!descripcionVisible)}>
-          <Text style={styles.sectionTitle}>
-            {descripcionVisible ? "Ocultar descripción " : "Descripción "}
-          </Text>
-        </TouchableOpacity>
+      
+          
+        
 
-        {descripcionVisible && (
+       
           <View style={styles.serviceCard}>
             <Text style={styles.description}>
               {auto.description}
             </Text>
           </View>
-        )}
+      
 
         {/* Lista de Servicios Seleccionados */}
         <Text style={styles.sectionTitle}>Servicios</Text>
@@ -95,7 +103,9 @@ export default function CarDetailScreen({ route, navigation }) {
                 <View>
                   <Text style={styles.serviceText}>{item.name}</Text>
                   <Text style={styles.serviceInfo}>Precio: {item.price}</Text>
-                  <Text style={styles.serviceInfo}>Duración: {item.modalidad}</Text>
+                                <Text style={styles.serviceInfo}>
+                Duración: {item.modalidad ? item.modalidad.nombre : "No especificado"}
+              </Text>
                 </View>
                 <TouchableOpacity onPress={() => eliminarServicio(item.id)}>
                   <Text style={styles.deleteButton}>X</Text>
@@ -126,7 +136,9 @@ export default function CarDetailScreen({ route, navigation }) {
                 <TouchableOpacity style={styles.serviceOption} onPress={() => agregarServicio(item)}>
                   <Text style={styles.serviceTitle}>{item.name}</Text>
                   <Text style={styles.serviceDescription}>{item.description}</Text>
-                  <Text style={styles.servicePrice}>Precio: {item.price} | {item.modalidad}</Text>
+                  <Text style={styles.servicePrice}>
+                  Precio: {item.price} | {item.modalidad ? item.modalidad.nombre : "Sin modalidad"}
+                </Text>
                 </TouchableOpacity>
               )}
             />
