@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../src/apiConfig";
@@ -14,39 +15,29 @@ import api from "../src/apiConfig";
 export default function ProfileScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [agenteModalVisible, setAgenteModalVisible] = useState(false);
 
-  // 🔥 Decodificador de JWT para extraer el correo
   const decodeToken = (token) => {
     try {
       const payload = token.split(".")[1];
       const decoded = JSON.parse(atob(payload));
-      return decoded.sub; // El email suele venir en "sub"
+      return decoded.sub;
     } catch (error) {
       console.error("Error al decodificar el token:", error);
       return null;
     }
   };
 
-  // 🔥 Función para obtener los datos del usuario por su correo
   const handleGetByCorreo = async () => {
     try {
-      console.log("📥 Intentando obtener token y correo...");
-
       const token = await AsyncStorage.getItem("userToken");
       let userEmail = await AsyncStorage.getItem("userEmail");
 
-      console.log("🔍 Token:", token);
-      console.log("🔍 Email:", userEmail);
-
       if (!userEmail && token) {
-        console.log("📩 No hay email guardado. Extrayendo del token...");
         userEmail = decodeToken(token);
-
         if (userEmail) {
-          console.log("✅ Email extraído del token:", userEmail);
           await AsyncStorage.setItem("userEmail", userEmail);
         } else {
-          console.log("🚨 No se pudo extraer el email del token.");
           Alert.alert("Error", "No se pudo obtener el correo.");
           setLoading(false);
           return;
@@ -54,43 +45,25 @@ export default function ProfileScreen({ navigation }) {
       }
 
       if (!token || !userEmail) {
-        console.log("🚨 No hay token o correo guardado.");
         Alert.alert("Error", "No tienes una sesión activa.");
         setLoading(false);
         return;
       }
 
-      console.log("🌐 Buscando cliente con correo:", userEmail);
       const response = await api.get(`/cliente/email/${userEmail}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      console.log("✅ Respuesta del servidor:", response.data);
-
       if (response.data) {
         setUserData(response.data);
       } else {
-        console.log("⚠️ No se encontró el cliente con ese correo.");
         Alert.alert("Aviso", "No se encontró el cliente.");
       }
     } catch (error) {
       console.error("❌ Error en la solicitud:", error);
-
-      if (error.response) {
-        console.error("Error del servidor:", error.response.data);
-        Alert.alert(
-          "Error",
-          error.response.data.message || "Algo salió mal en el servidor."
-        );
-      } else if (error.request) {
-        console.error("No hubo respuesta del servidor:", error.request);
-        Alert.alert("Error", "No se recibió respuesta del servidor.");
-      } else {
-        console.error("Error en la configuración:", error.message);
-        Alert.alert("Error", "Ocurrió un problema inesperado.");
-      }
+      Alert.alert("Error", "Ocurrió un problema inesperado.");
     } finally {
       setLoading(false);
     }
@@ -113,10 +86,11 @@ export default function ProfileScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Perfil</Text>
 
-      {/* Imagen de perfil */}
-      <Image source={require("../assets/profile.png")} style={styles.profileImage} />
+      <Image
+        source={require("../assets/profile.png")}
+        style={styles.profileImage}
+      />
 
-      {/* Información del usuario */}
       <Text style={styles.titleUser}>
         {userData ? `${userData.name}` : "Sin nombre"}
       </Text>
@@ -127,7 +101,9 @@ export default function ProfileScreen({ navigation }) {
         <>
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Nombre:</Text>
-            <Text style={styles.value}>{`${userData.name} ${userData.lastname}`}</Text>
+            <Text style={styles.value}>
+              {`${userData.name} ${userData.lastname}`}
+            </Text>
           </View>
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Correo:</Text>
@@ -136,28 +112,16 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.infoContainer}>
             <Text style={styles.label}>Teléfono:</Text>
             <Text style={styles.value}>
-              {userData.telephone ? userData.telephone : "Sin número registrado"}
+              {userData.telephone || "Sin número registrado"}
             </Text>
           </View>
 
-          {/* Datos del agente asignado */}
-          {userData.agente && (
-            <>
-              <Text style={styles.subtitle}>Agente Asignado</Text>
-              <View style={styles.infoContainer}>
-                <Text style={styles.label}>Nombre completo:</Text>
-                <Text style={styles.value}>{`${userData.agente.name} ${userData.agente.lastname}`}</Text>
-              </View>
-              <View style={styles.infoContainer}>
-                <Text style={styles.label}>Correo:</Text>
-                <Text style={styles.value}>{userData.agente.email}</Text>
-              </View>
-              <View style={styles.infoContainer}>
-                <Text style={styles.label}>Usuario:</Text>
-                <Text style={styles.value}>{userData.agente.username}</Text>
-              </View>
-            </>
-          )}
+          <TouchableOpacity
+            style={styles.agentButton}
+            onPress={() => setAgenteModalVisible(true)}
+          >
+            <Text style={styles.buttonText}>Ver información del agente</Text>
+          </TouchableOpacity>
         </>
       ) : (
         <Text style={{ color: "#d9534f", marginBottom: 20 }}>
@@ -178,25 +142,62 @@ export default function ProfileScreen({ navigation }) {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
       </TouchableOpacity>
+
+      {/* Modal del agente */}
+      {agenteModalVisible && (
+        <Modal transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.subtitle}>Información del Agente</Text>
+
+              <Text style={styles.modalLabel}>Nombre completo:</Text>
+              <Text style={styles.modalValue}>
+                {userData?.agente
+                  ? `${userData.agente.name} ${userData.agente.lastname} ${
+                      userData.agente.surname || ""
+                    }`
+                  : "No asignado"}
+              </Text>
+
+              <Text style={styles.modalLabel}>Correo:</Text>
+              <Text style={styles.modalValue}>
+                {userData?.agente?.email || "Sin correo"}
+              </Text>
+
+              <Text style={styles.modalLabel}>Teléfono:</Text>
+              <Text style={styles.modalValue}>
+                {userData?.agente?.telephone || "Sin número"}
+              </Text>
+
+              <TouchableOpacity
+                style={styles.logoutButton}
+                onPress={() => setAgenteModalVisible(false)}
+              >
+                <Text style={styles.logoutButtonText}>Cerrar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
 
-// 🎯 Estilos
+// 🎨 Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start", 
+    justifyContent: "flex-start",
     backgroundColor: "#f5f5f5",
     padding: 20,
-    paddingTop: 40, 
+    paddingTop: 40,
   },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 30, 
+    marginBottom: 30,
   },
   profileImage: {
     width: 150,
@@ -209,14 +210,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     color: "#333",
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#008080",
-    marginTop: 25,
-    marginBottom: 10,
-    alignSelf: "flex-start",
   },
   infoContainer: {
     flexDirection: "row",
@@ -257,10 +250,51 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: "80%",
     alignItems: "center",
+    alignSelf: "center",
   },
   logoutButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  agentButton: {
+    marginTop: 20,
+    backgroundColor: "#008080",
+    padding: 12,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+    alignSelf: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 15,
+    width: "85%",
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#008080",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  modalRow: {
+    marginBottom: 10,
+  },
+  modalLabel: {
+    fontWeight: "bold",
+    fontSize: 16,
+    color: "#555",
+  },
+  modalValue: {
+    fontSize: 16,
+    color: "#333",
   },
 });

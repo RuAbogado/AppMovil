@@ -71,7 +71,6 @@ export default function HistorialScreen({ navigation }) {
         imagen: venta.vehiculo?.imagen || null,
         precio: venta.precioFinal?.toLocaleString("es-MX") || "0",
         subtotal: venta.vehiculo?.precio || 0,
-        agente: venta.agente?.nombre || "Sin asignar",
         telefono: venta.agente?.telefono || "No disponible",
         correo: venta.agente?.correo || "No disponible",
         serviciosSeleccionados: (venta.ventaServicios || []).map((vs) => ({
@@ -119,7 +118,7 @@ export default function HistorialScreen({ navigation }) {
           <View style={styles.card}>
             <Text style={styles.folio}>Folio: {item.folio}</Text>
             <Text style={styles.modelo}>Modelo: {item.modelo}</Text>
-            <Text style={styles.agente}>Agente: {item.agente}</Text>
+            
 
             <TouchableOpacity
               style={styles.button}
@@ -141,7 +140,13 @@ export default function HistorialScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#f5f5f5" },
-  title: { fontSize: 22, fontWeight: "bold", textAlign: "center", marginBottom: 40 },
+  title: { 
+    fontSize: 22, 
+    fontWeight: "bold", 
+    textAlign: "center", 
+    marginTop: 20, 
+    marginBottom: 40 
+  },
   card: { backgroundColor: "#fff", padding: 15, borderRadius: 10, marginBottom: 10 },
   folio: { fontSize: 16, fontWeight: "bold" },
   modelo: { fontSize: 16, color: "#018180" },
