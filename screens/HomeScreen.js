@@ -101,7 +101,10 @@ export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
       <View style={styles.container}>
+<<<<<<< HEAD
       
+=======
+>>>>>>> b71d31703d25ba5fc782b55c4657afb5c1d5a383
         <Text style={styles.title}>Catálogo de autos</Text>
 
         <DropDownPicker
