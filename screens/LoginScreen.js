@@ -1,41 +1,76 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, Alert } from "react-native";
-import axios from "axios";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ImageBackground,
+  StyleSheet,
+  Alert,
+  Modal,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../src/apiConfig";
-
 
 export default function LoginScreen({ navigation }) {
   const [correo, setCorreo] = useState("");
   const [contraseña, setContraseña] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [userToken, setUserToken] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
 
   const handleLogin = async () => {
-    
     if (!correo || !contraseña) {
-      console.log("debe decirte que eso no se puede")
       Alert.alert("Error", "Por favor, ingresa tu correo y contraseña.");
       return;
     }
 
     try {
       const response = await api.post("/api/auth/Login", {
-        email: correo, 
-        password: contraseña,
+        email: correo.toLowerCase().trim(),
+        password: contraseña.trim(),
       });
 
-      console.log("Respuesta del servidor:", response.data.token);
+      const { token, mustChangePassword } = response.data;
 
-      // Si el login es exitoso
-      if (response.data) {
-        Alert.alert("Bienvenido", "Inicio de sesión exitoso.");
-        await AsyncStorage.setItem("userToken", response.data.token);
-        navigation.replace("HomeTabs"); // Navega a la pantalla principal
+      await AsyncStorage.setItem("userToken", token);
+      setUserToken(token);
+
+      if (mustChangePassword) {
+        setModalVisible(true);
       } else {
-        Alert.alert("Error", response.data.message || "Credenciales incorrectas");
+        navigation.replace("HomeTabs");
       }
     } catch (error) {
       console.error("Error en la solicitud:", error);
-      Alert.alert("Error", "No se pudo conectar con el servidor.");
+      Alert.alert("Error", "Credenciales incorrectas o no se pudo conectar con el servidor.");
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || newPassword.length < 8) {
+      Alert.alert("Error", "La nueva contraseña debe tener al menos 8 caracteres.");
+      return;
+    }
+
+    try {
+      const token = userToken;
+      const response = await api.post(
+        "/api/auth/change-password-movill",
+        { newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Contraseña cambiada con éxito:", response.data);
+      setModalVisible(false);
+      navigation.replace("HomeTabs");
+    } catch (error) {
+      console.error("Error al cambiar la contraseña:", error);
+      Alert.alert("Error", "No se pudo cambiar la contraseña.");
     }
   };
 
@@ -44,8 +79,10 @@ export default function LoginScreen({ navigation }) {
       <View style={styles.logoContainer}>
         <Text style={styles.logoText}>SEGA</Text>
       </View>
+
       <View style={styles.container}>
         <Text style={styles.title}>Bienvenido</Text>
+
         <TextInput
           style={styles.input}
           placeholder="Correo"
@@ -54,6 +91,7 @@ export default function LoginScreen({ navigation }) {
           keyboardType="email-address"
           autoCapitalize="none"
         />
+
         <TextInput
           style={styles.input}
           placeholder="Contraseña"
@@ -61,19 +99,51 @@ export default function LoginScreen({ navigation }) {
           onChangeText={setContraseña}
           secureTextEntry
         />
+
         <TouchableOpacity onPress={() => navigation.navigate("RecuperarContraseña")}>
           <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Iniciar Sesión</Text>
         </TouchableOpacity>
+
         <View style={styles.registerTextContainer}>
-          <Text style={styles.registerText}>Aún no tienes cuenta? </Text>
+          <Text style={styles.registerText}>¿Aún no tienes cuenta?</Text>
           <TouchableOpacity onPress={() => navigation.navigate("Registro")}>
             <Text style={styles.registerLink}>Regístrate</Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Modal de cambio de contraseña */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Cambio de Contraseña</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nueva contraseña"
+              secureTextEntry
+              onChangeText={setNewPassword}
+            />
+            <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
+              <Text style={styles.buttonText}>Cambiar Contraseña</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.buttonText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ImageBackground>
   );
 }
@@ -148,5 +218,27 @@ const styles = StyleSheet.create({
   registerLink: {
     color: "#018180",
     fontWeight: "bold",
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 30,
+    borderRadius: 15,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  cancelButton: {
+    backgroundColor: "#ccc",
+    marginTop: 10,
   },
 });
