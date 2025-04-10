@@ -1,39 +1,56 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, Modal, FlatList } from "react-native";
 import api from "../src/apiConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function CarDetailScreen({ route, navigation }) {
   const { auto } = route.params;
   const [descripcionVisible, setDescripcionVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]);
-  const [serviciosDisponibles, setServiciosDisponibles] = useState([]); // Estado para almacenar los servicios 
+  const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
 
-  // Función para obtener los servicios desde el backend
+  // ✨ Mapa de traducción de colores (ES → EN)
+  const colorMap = {
+    rojo: "red",
+    azul: "blue",
+    verde: "green",
+    negro: "black",
+    blanco: "white",
+    gris: "gray",
+    amarillo: "yellow",
+    naranja: "orange",
+    morado: "purple",
+    rosa: "pink",
+    dorado: "#FFD700",
+    plata: "#C0C0C0",
+  };
+
   const obtenerServicios = async () => {
+    const token = await AsyncStorage.getItem("userToken");
     try {
-      const response = await api.get("/servicios/obtener"); // Cambia la URL si es necesario
-      setServiciosDisponibles(response.data); // Almacena los servicios en el estado
+      const response = await api.get("/servicios/obtener", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setServiciosDisponibles(response.data);
     } catch (error) {
       console.error("Error al obtener los servicios:", error);
-      // Puedes mostrar un mensaje de error al usuario si lo deseas
     }
   };
 
-  // Cargar los servicios cuando la pantalla se monte
   useEffect(() => {
     obtenerServicios();
   }, []);
 
-  // Función para agregar servicio a la lista
   const agregarServicio = (servicio) => {
     if (!serviciosSeleccionados.some((s) => s.id === servicio.id)) {
       setServiciosSeleccionados([...serviciosSeleccionados, servicio]);
     }
-    setModalVisible(false); // Cierra el modal después de seleccionar un servicio
+    setModalVisible(false);
   };
 
-  // Función para eliminar servicio
   const eliminarServicio = (id) => {
     setServiciosSeleccionados(serviciosSeleccionados.filter((s) => s.id !== id));
   };
@@ -41,49 +58,40 @@ export default function CarDetailScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView>
-        {/* Imagen del auto */}
+        <Text style={styles.carTitle}>{auto.modelo}</Text>
         <Image source={{ uri: auto.imagen }} style={styles.carImage} />
 
         {/* Color del auto */}
         <View style={styles.colorContainer}>
-          <View style={styles.colorCircle} />
-          <Text style={styles.colorText}>{auto.color}</Text>
+          <View
+            style={[
+              styles.colorCircle,
+              { backgroundColor: colorMap[auto.color?.toLowerCase()] || "#A9B0B8" },
+            ]}
+          />
+          <Text style={[styles.colorText, { color: "#000" }]}>{auto.color}</Text>
         </View>
 
-        {/* Nombre y Precio */}
         <Text style={styles.carTitle}>{auto.nombre}</Text>
         <Text style={styles.price}>
           Precio: <Text style={styles.priceHighlight}>${auto.precio}</Text>
         </Text>
 
-        {/* Botón Comprar */}
         <TouchableOpacity
           style={styles.buyButton}
           onPress={() => navigation.navigate("CompraScreen", {
             auto,
             serviciosSeleccionados,
-            agenteId: auto.agente?.id || null // si tienes agente relacionado al auto
+            agenteId: auto.agente?.id || null
           })}
         >
           <Text style={styles.buyButtonText}>Comprar</Text>
         </TouchableOpacity>
 
-        {/* Sección Descripción con despliegue */}
-        <TouchableOpacity style={styles.toggleButton} onPress={() => setDescripcionVisible(!descripcionVisible)}>
-          <Text style={styles.sectionTitle}>
-            {descripcionVisible ? "Ocultar descripción " : "Descripción "}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.serviceCard}>
+          <Text style={styles.description}>{auto.description}</Text>
+        </View>
 
-        {descripcionVisible && (
-          <View style={styles.serviceCard}>
-            <Text style={styles.description}>
-              {auto.description}
-            </Text>
-          </View>
-        )}
-
-        {/* Lista de Servicios Seleccionados */}
         <Text style={styles.sectionTitle}>Servicios</Text>
 
         {serviciosSeleccionados.length > 0 ? (
@@ -95,7 +103,9 @@ export default function CarDetailScreen({ route, navigation }) {
                 <View>
                   <Text style={styles.serviceText}>{item.name}</Text>
                   <Text style={styles.serviceInfo}>Precio: {item.price}</Text>
-                  <Text style={styles.serviceInfo}>Duración: {item.modalidad}</Text>
+                  <Text style={styles.serviceInfo}>
+                    Duración: {item.modalidad ? item.modalidad.nombre : "No especificado"}
+                  </Text>
                 </View>
                 <TouchableOpacity onPress={() => eliminarServicio(item.id)}>
                   <Text style={styles.deleteButton}>X</Text>
@@ -109,12 +119,10 @@ export default function CarDetailScreen({ route, navigation }) {
         )}
       </ScrollView>
 
-      {/* Botón Agregar Servicio siempre visible */}
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.addButtonText}>Agregar servicio</Text>
       </TouchableOpacity>
 
-      {/* Modal de Servicios Mejorado */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -126,12 +134,12 @@ export default function CarDetailScreen({ route, navigation }) {
                 <TouchableOpacity style={styles.serviceOption} onPress={() => agregarServicio(item)}>
                   <Text style={styles.serviceTitle}>{item.name}</Text>
                   <Text style={styles.serviceDescription}>{item.description}</Text>
-                  <Text style={styles.servicePrice}>Precio: {item.price} | {item.modalidad}</Text>
+                  <Text style={styles.servicePrice}>
+                    Precio: {item.price} | {item.modalidad ? item.modalidad.nombre : "Sin modalidad"}
+                  </Text>
                 </TouchableOpacity>
               )}
             />
-
-            {/* Botón Cerrar Modal */}
             <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
               <Text style={styles.cancelButtonText}>Cerrar</Text>
             </TouchableOpacity>
@@ -157,8 +165,8 @@ const styles = StyleSheet.create({
   addButton: { backgroundColor: "#008080", padding: 10, borderRadius: 10, alignItems: "center" },
   addButtonText: { color: "#fff", fontWeight: "bold" },
   colorContainer: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingHorizontal: 12, paddingVertical: 8, backgroundColor: "#E0E0E0", borderRadius: 20, alignSelf: "center" },
-  colorCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: "#A9B0B8", marginRight: 10 },
-  colorText: { fontSize: 16, fontWeight: "bold", color: "#333", textAlign: "center" },
+  colorCircle: { width: 20, height: 20, borderRadius: 10, marginRight: 10, borderWidth: 1, borderColor: "#ccc" },
+  colorText: { fontSize: 16, fontWeight: "bold", textAlign: "center" },
   toggleButton: { marginTop: -10 },
   modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
   modalContent: { backgroundColor: "#fff", padding: 20, width: "90%", borderRadius: 10, alignItems: "center" },

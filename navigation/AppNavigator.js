@@ -2,6 +2,7 @@ import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
+import { Ionicons } from '@expo/vector-icons';
 
 import LoginScreen from "../screens/LoginScreen";
 import HomeScreen from "../screens/HomeScreen";
@@ -57,9 +58,9 @@ function HomeTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
       <Tab.Screen
-        name="Inicio"
+        name="Autos"
         component={HomeStackTab}
-        options={{ tabBarIcon: ({ color }) => <Feather name="home" size={24} color={color} /> }}
+        options={{ tabBarIcon: ({ color }) => <Ionicons name="car" size={24} color={color} /> }}
       />
       <Tab.Screen
         name="Historial"

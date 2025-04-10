@@ -5,7 +5,8 @@ import {
   StyleSheet,
   Image,
   SafeAreaView,
-  ActivityIndicator
+  ActivityIndicator,
+  ScrollView,
 } from "react-native";
 
 export default function DetalleCompraScreen({ route }) {
@@ -22,83 +23,123 @@ export default function DetalleCompraScreen({ route }) {
 
   if (loading || !compra) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <ActivityIndicator size="large" color="#018180" />
       </View>
     );
   }
 
   return (
-     <SafeAreaView  style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
-    <View style={styles.container}>
-      <Text style={styles.title}>Detalles de la compra</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Detalles de la compra</Text>
 
-      {/* Imagen del vehículo */}
-      <View style={styles.centeredImage}>
-        <Image
-          source={
-            typeof compra.imagen === "string"
-              ? { uri: decodeURIComponent(compra.imagen) }
-              : compra.imagen
-          }
-          style={styles.image}
-        />
-      </View>
-
-      <View style={styles.row}>
-        {/* Información del vehículo */}
-        <View style={styles.column}>
-          <Text style={styles.sectionTitle}>Información del vehículo</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Folio:</Text> {compra.folio}</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Marca:</Text> {compra.marca || "-"}</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Modelo:</Text> {compra.modelo}</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Placa:</Text> {compra.placa || compra.matricula || "-"}</Text>
+        {/* Imagen del vehículo */}
+        <View style={styles.centeredImage}>
+          <Image
+            source={
+              typeof compra.imagen === "string"
+                ? { uri: decodeURIComponent(compra.imagen) }
+                : compra.imagen
+            }
+            style={styles.image}
+          />
         </View>
 
-        {/* Datos del agente */}
-        <View style={styles.column}>
-          <Text style={styles.sectionTitle}>Datos de{"\n"}Agente de ventas</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Vendedor:</Text> {compra.agente || "-"}</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Teléfono:</Text> {compra.telefono || "No disponible"}</Text>
-          <Text style={styles.label}><Text style={styles.bold}>Correo:</Text> {compra.correo || "No disponible"}</Text>
+        <View style={styles.row}>
+          {/* Información del vehículo */}
+          <View style={styles.column}>
+            <Text style={styles.sectionTitle}>Información del vehículo</Text>
+            <Text style={styles.label}>
+              <Text style={styles.bold}>Folio:</Text> {compra.folio}
+            </Text>
+            <Text style={styles.label}>
+              <Text style={styles.bold}>Marca:</Text> {compra.marca || "-"}
+            </Text>
+            <Text style={styles.label}>
+              <Text style={styles.bold}>Modelo:</Text> {compra.modelo}
+            </Text>
+            <Text style={styles.label}>
+              <Text style={styles.bold}>Placa:</Text>{" "}
+              {compra.placa || compra.matricula || "-"}
+            </Text>
+          </View>
         </View>
-      </View>
 
-      {/* Precios */}
-      <View style={styles.priceSection}>
-        <Text style={styles.sectionTitle}>Precios</Text>
-        <Text style={styles.label}><Text style={styles.bold}>Subtotal:</Text> ${compra.subtotal?.toLocaleString("es-MX") || "0"}</Text>
-        <Text style={styles.label}><Text style={styles.bold}>+ servicios:</Text> ${compra.serviciosSeleccionados?.reduce((acc, s) => acc + parseFloat(s.price || 0), 0).toLocaleString("es-MX")}</Text>
-        <Text style={styles.label}><Text style={styles.bold}>Total:</Text> ${compra.precio}</Text>
-      </View>
+        {/* Precios */}
+        <View style={styles.priceSection}>
+          <Text style={styles.sectionTitle}>Precios</Text>
+          <Text style={styles.label}>
+            <Text style={styles.bold}>Subtotal:</Text> $
+            {compra.subtotal?.toLocaleString("es-MX") || "0"}
+          </Text>
+          <Text style={styles.label}>
+            <Text style={styles.bold}>+ servicios:</Text> $
+            {compra.serviciosSeleccionados
+              ?.reduce((acc, s) => {
+                const precio = parseFloat(s.precio || s.price || 0);
+                return acc + precio;
+              }, 0)
+              .toLocaleString("es-MX")}
+          </Text>
 
-      {/* Servicios */}
-      {compra.serviciosSeleccionados?.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Servicios incluidos</Text>
-          {compra.serviciosSeleccionados.map((servicio, index) => (
-            <View key={index} style={styles.serviceCard}>
-              <Text style={styles.serviceName}>{servicio.nombre || servicio.name}</Text>
-              <Text style={styles.serviceDetail}>Precio: ${servicio.precio || servicio.price}</Text>
-              <Text style={styles.serviceDetail}>Duración: {servicio.duracion || servicio.modalidad || "-"}</Text>
-            </View>
-          ))}
+          <Text style={styles.label}>
+            <Text style={styles.bold}>Total:</Text> ${compra.precio}
+          </Text>
         </View>
-      )}
 
-      <Text style={styles.footerText}>
-        Si quieres la factura, debes ir a la agencia y solicitarla con tu agente de ventas.
-      </Text>
-    </View>
+        {/* Servicios */}
+        {compra.serviciosSeleccionados?.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Servicios incluidos</Text>
+            {compra.serviciosSeleccionados.map((servicio, index) => (
+              <View key={index} style={styles.serviceCard}>
+                <Text style={styles.serviceName}>
+                  {servicio.nombre || servicio.name}
+                </Text>
+                <Text style={styles.serviceDetail}>
+                  Precio: ${servicio.precio || servicio.price}
+                </Text>
+                <Text style={styles.serviceDetail}>
+                  Duración: {servicio.duracion || servicio.modalidad || "-"}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        <Text style={styles.footerText}>
+          Si quieres la factura, debes ir a la agencia y solicitarla con tu
+          agente de ventas.
+        </Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5", padding: 20 },
-  title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginBottom: 20 },
+  container: { padding: 20, backgroundColor: "#f5f5f5" },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginTop: 20,
+    marginBottom: 20,
+  },
   section: { marginVertical: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10, borderBottomWidth: 1, borderBottomColor: "#018180", paddingBottom: 5 },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#018180",
+    paddingBottom: 5,
+  },
   label: { fontSize: 16, marginBottom: 5 },
   bold: { fontWeight: "bold" },
   row: { flexDirection: "row", justifyContent: "space-between" },
@@ -111,9 +152,15 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 8,
     marginBottom: 10,
-    elevation: 1
+    elevation: 1,
   },
   serviceName: { fontWeight: "bold", fontSize: 16, color: "#018180" },
   serviceDetail: { fontSize: 14, color: "#555" },
-  footerText: { fontSize: 12, color: "#018180", textAlign: "center", marginTop: 30 }
+  footerText: {
+    fontSize: 12,
+    color: "#018180",
+    textAlign: "center",
+    marginTop: 30,
+    marginBottom: 40,
+  },
 });

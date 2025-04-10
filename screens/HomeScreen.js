@@ -1,22 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
-import AsyncStorage from "@react-native-async-storage/async-storage"; // 🔥 IMPORTANTE: Agregado
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../src/apiConfig";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-
 
 export default function HomeScreen({ navigation }) {
   const [marcasBack, setMarcasBack] = useState([]);
   const [selectedMarca, setSelectedMarca] = useState(null);
   const [open, setOpen] = useState(false);
-  const [autosBack,setAutosBack] = useState([])
-  const primerVez = useRef(true)
- 
-  
+  const [autosBack, setAutosBack] = useState([]);
+  const primerVez = useRef(true);
 
-  // 🔥 Obtener el token de AsyncStorage y enviarlo en la cabecera
   const handleGetMarcas = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -26,20 +21,16 @@ export default function HomeScreen({ navigation }) {
         return;
       }
 
-      //console.log("Token recuperado:", token);
-
       const response = await api.get("/marcas/getAll", {
         headers: {
-          Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
+          Authorization: `Bearer ${token}`
         }
       });
 
-      console.log("Respuesta del servidor locochon:", response.data);
+      console.log("Respuesta del servidor:", response.data);
 
       if (response.data && Array.isArray(response.data)) {
         setMarcasBack(response.data);
-        //setSelectedMarca(response.data[0]?.nombre || null); // 🔥 Seleccionar la primera marca automáticamente
-
       } else {
         console.log("Error", "No se encontraron marcas disponibles.");
       }
@@ -49,12 +40,6 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  /*useEffect(() => {
-    handleGetMarcas(); // 🚀 Ahora sí se ejecuta al montar el componente
-  }, []);*/
-
-
-  ///peticion para los autos desde le back
   const handleGetAutos = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -64,16 +49,14 @@ export default function HomeScreen({ navigation }) {
         return;
       }
 
-      //console.log("Token recuperado:", token);
-
       const response = await api.get('/vehiculo/obtener', {
         headers: {
-          Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
+          Authorization: `Bearer ${token}`
         }
       });
 
-      console.log("Respuesta del servidor locochon e insano:", response.data);
-      setAutosBack(response.data)
+      console.log("Respuesta de autos:", response.data);
+      setAutosBack(response.data);
       
     } catch (error) {
       console.error("Error en la solicitud:", error);
@@ -81,8 +64,6 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  //parte donde se selccionan lo carros segun la marca
-  ///peticion para los autos desde le back
   const handleGetAutosByBrand = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
@@ -92,16 +73,14 @@ export default function HomeScreen({ navigation }) {
         return;
       }
 
-      //console.log("Token recuperado:", token);
-      console.log("marca antes de la rebusqueda: ",selectedMarca)
+      console.log("Marca seleccionada:", selectedMarca);
       const response = await api.get(`/vehiculo/marca/${selectedMarca}`, {
-      headers: {
-          Authorization: `Bearer ${token}` // 🔥 Agregado el token en la cabecera
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       });
-      setAutosBack(response.data)
-      console.log("Respuesta del servidor locochon e insano por marca:", response.data);
-
+      setAutosBack(response.data);
+      console.log("Autos por marca:", response.data);
       
     } catch (error) {
       console.error("Error en la solicitud:", error);
@@ -109,61 +88,52 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-
-  /*useEffect(() => {
-    handleGetAutosByBrand();
-  }, [selectedMarca]);*/
-
-  console.log("valor de selectedMarca: ",selectedMarca)
-  console.log("valor de primeraVez: ",primerVez)
-
   useEffect(() => {
-    if(primerVez.current){
-      handleGetMarcas(); // 🚀 Ahora sí se ejecuta al montar el componente
+    if (primerVez.current) {
+      handleGetMarcas();
       handleGetAutos();
-      primerVez.current = false
-    }else{
+      primerVez.current = false;
+    } else {
       handleGetAutosByBrand();
     }
   }, [selectedMarca]);
 
-  
-
-  const autos = autosBack
-
   return (
-    <SafeAreaView  style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
-    <View style={styles.container}>
-      <DropDownPicker
-        open={open}
-        value={selectedMarca}
-        items={marcasBack.map(marca => ({ label: marca.nombre, value: marca.nombre }))}
-        setOpen={setOpen}
-        setValue={setSelectedMarca}
-        containerStyle={styles.picker}
-        style={styles.dropdown}
-        placeholder="Selecciona una marca"
-        placeholderStyle={{ color: "#BDBDBD" }}
-        listMode="SCROLLVIEW"
-      />
-      <FlatList
-        data={autosBack}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Image source={{ uri: item.imagen }} style={styles.image} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F5F5F5" }}>
+      <View style={styles.container}>
 
-            <Text style={styles.carName}>{item.modelo}</Text>
-            <TouchableOpacity 
+        <Text style={styles.title}>Catálogo de autos</Text>
+
+        <DropDownPicker
+          open={open}
+          value={selectedMarca}
+          items={marcasBack.map(marca => ({ label: marca.nombre, value: marca.nombre }))}
+          setOpen={setOpen}
+          setValue={setSelectedMarca}
+          containerStyle={styles.picker}
+          style={styles.dropdown}
+          placeholder="Selecciona una marca"
+          placeholderStyle={{ color: "#BDBDBD" }}
+          listMode="SCROLLVIEW"
+        />
+        
+        <FlatList
+          data={autosBack}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Image source={{ uri: item.imagen }} style={styles.image} />
+              <Text style={styles.carName}>{item.modelo}</Text>
+              <TouchableOpacity 
                 style={styles.button}
                 onPress={() => navigation.navigate("CarDetail", { auto: item })}
-            >
+              >
                 <Text style={styles.buttonText}>Ver más</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
-    </View>
+              </TouchableOpacity>
+            </View>
+          )}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -174,6 +144,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
     padding: 10,
   },
+  title: { 
+    fontSize: 22, 
+    fontWeight: "bold", 
+    textAlign: "center", 
+    marginBottom: 40 
+  },
   picker: {
     height: 50,
     width: "100%",
@@ -183,6 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#018180",
+    flex: 1,
   },
   card: {
     backgroundColor: "#FFF",

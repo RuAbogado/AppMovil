@@ -1,8 +1,7 @@
-
 // src/apiConfig.js
 import axios from "axios";
 
-const ip = "172.20.10.12"
+const ip = "192.168.0.125"
 
 // Configura la URL base
 const API_BASE_URL = `http://${ip}:8080`;

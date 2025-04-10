@@ -94,8 +94,11 @@ export default function Comprando({ route, navigation }) {
         date: new Date().toISOString()
       };
 
-      const ventaResponse = await api.post("/ventas", ventaData, {
+      const ventaResponse = await api.post("/ventas/vender", ventaData, {
+      
         headers: { Authorization: `Bearer ${token}` }
+      
+      
       });
 
       if (ventaResponse.status >= 200 && ventaResponse.status < 300) {
